@@ -1,0 +1,48 @@
+# FROM ocaml/opam@sha256:d34edeec7d5aacca127c4d8f1f57f2308e01050045c2d7c5833fc678fc946fd4
+
+FROM ocurrent/opam-staging:windows-mingw-21H2-ocaml-4.14-amd64@sha256:09b89a40d5d50223463548d39a9954b48920acdc0f72a6e24bd3d411053cbfc0
+# debian-12-4.14_opam-2.1
+
+# USER 1000:1000
+
+ENV CLICOLOR_FORCE="1"
+
+ENV OPAMCOLOR="always"
+
+WORKDIR /src
+
+# RUN powershell -Command "new-item -itemtype symboliclink -path C:\cygwin64\bin\opam.exe -name opam.exe -value C:\cygwin64\bin\opam-2.1.exe"
+
+# RUN C:\cygwin64\bin\bash.exe --login -c "ln -f /usr/bin/opam-2.1 /usr/bin/opam"
+
+RUN opam init --reinit -ni
+
+RUN opam exec -- ocaml -version && opam --version
+
+WORKDIR /src
+
+# RUN C:\cygwin64\bin\bash.exe --login -c "sudo chown opam /src"
+
+# RUN C:\cygwin64\bin\bash.exe --login -c "cd ~/opam-repository && (git cat-file -e 02f633dda47acbb2f818c2ddbc5b0981000302b3 || git fetch origin master) && git reset -q --hard 02f633dda47acbb2f818c2ddbc5b0981000302b3 && git log --no-decorate -n1 --oneline && opam update -u"
+
+# RUN C:\cygwin64\bin\bash.exe --login -c "cd ~/opam-repository && git clone ocaml/opam-repository "
+
+# COPY --chown=1000:1000 saguaro.opam ./
+
+# RUN C:\cygwin64\bin\bash.exe --login -c "opam pin add -yn saguaro.dev './'"
+
+ENV DEPS="base-bigarray.base base-threads.base base-unix.base dune.3.10.0 ocaml.4.14.1 ocaml-base-compiler.4.14.1 ocaml-config.2 ocaml-options-vanilla.1"
+
+ENV CI="true"
+
+ENV OCAMLCI="true"
+
+RUN opam --version
+
+RUN opam update --depexts && opam install --cli=2.1 --depext-only -y saguaro.dev $DEPS
+
+RUN opam install $DEPS
+
+COPY --chown=1000:1000 . /src
+
+RUN opam exec -- dune build @install @check @runtest && rm -rf _build

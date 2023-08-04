@@ -1,0 +1,10 @@
+# escape=`
+
+FROM ocurrent/opam-staging@sha256:7392e824db3ca5cab68473f8d95148ed13e51f9644f85b89155837d3cf8dc124
+ENV OPAMYES="1" OPAMCONFIRMLEVEL="unsafe-yes" OPAMERRLOGLEN="0" OPAMPRECISETRACKING="1"
+RUN ocaml-env exec --64 --no-opam -- opam switch create 4.14 --packages=ocaml-variants.4.14.1+mingw64
+RUN ocaml-env exec --64 -- opam pin add -k version ocaml-variants 4.14.1+mingw64
+RUN ocaml-env exec --64 -- opam install -y depext depext-cygwinports
+ENTRYPOINT [ "ocaml-env", "exec", "--64", "--" ]
+CMD [ "cmd.exe" ]
+COPY [ "Dockerfile", "/Dockerfile.ocaml" ]
